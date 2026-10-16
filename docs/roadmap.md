@@ -3,13 +3,15 @@
 Implemented: configurable directed strings; unrestricted, L-count, and exact
 L-proportion concatenation rules (both distinct orders on ties); explicit reusable
 construction histories; reference and multi-target ancestry inspection; generic
-feasibility verification; and a tiny positive integer-addition system.
+feasibility verification; positive integer addition; and exact single-target
+assembly index for integer addition from `1` and unrestricted strings. Exact
+search retains verified witnesses and fails explicitly on its state limit.
 
 Future work:
 
-- Specialised string and integer addition-chain search and optimisation solvers.
-- Assembly index, constrained depth, and discrete Dirichlet energy: specify
-  objectives, depth counting, and energy boundary/normalisation conventions.
+- Faster exact search and justified support for additional systems and string rules.
+- Constrained depth and discrete Dirichlet energy: specify objectives, depth
+  counting, and energy boundary/normalisation conventions before implementing them.
 - Joint assembly / COJAS: define multi-target costs and the intended formulation.
   Shared ancestry inspection alone does not implement joint optimisation.
 - Stochastic dynamics: define populations, propensities, resource/copy semantics,
@@ -18,5 +20,5 @@ Future work:
   termination status, bounds, and optimality evidence; avoid heavy core dependencies.
 - Further object types and graph attachment machinery when concrete needs arise.
 
-Keep exact results distinct from upper/lower bounds. No optimisation, energy, or
-simulation API is reserved yet; settle conventions before implementing it.
+Keep exact results distinct from upper/lower bounds. Further optimisation, energy,
+and simulation APIs remain unspecified; settle conventions before implementing them.

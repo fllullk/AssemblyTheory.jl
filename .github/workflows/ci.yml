@@ -21,3 +21,5 @@ jobs:
         run: julia --project=. examples/string_concatenation.jl
       - name: Run integer example
         run: julia --project=. examples/integer_addition.jl
+      - name: Run assembly-index example
+        run: julia --project=. examples/assembly_index.jl

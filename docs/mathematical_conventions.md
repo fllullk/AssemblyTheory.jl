@@ -58,8 +58,7 @@ products at two references are not merged, and `(3, 3)` retains both uses of the
 same operand. For restricted concatenation, the rule selects the permitted
 product order; the stored parent tuple need not already be in that order.
 
-The verifier
-replays these claims from the system definition, checking validity and rule
+The verifier replays these claims from the system definition, checking validity and rule
 membership with system-specific equality. It does not trust a solver's claims.
 An empty construction is valid and represents only the initially available
 blocks. A construction does not store a target or an optimality claim. The number
@@ -82,25 +81,132 @@ unrelated later steps are excluded. Primitive-only or empty selections return
 checked by inspection. `verify` checks the entire construction, even steps
 outside selected target histories.
 
-## Integer interface demonstration
+## Integer addition
 
 `IntegerAdditionSystem()` has ordered building blocks `[big(1)]`, positive
 integer validity, ordinary numerical equality, and a single product `a + b`.
 Its object type is `BigInt`, so use `big(...)` step products (including in empty
 `AssemblyStep{BigInt}[]` constructions). Arbitrary precision avoids overflow.
 The generic construction representation, verifier, and inspection helpers are
-used unchanged. This is an interface demonstration with no addition-chain search.
+used unchanged. The system also supports exact single-target assembly-index search.
 
-## Feasibility and future objectives
+## Exact assembly index
+
+`assembly_index(system, target; max_states=100_000)` returns an `Int` equal to the
+minimum number of binary joins needed to make one target available. Primitives
+cost zero, each join costs one, and all objects remain reusable, including twice
+within one join. Target primitives have index zero. This objective is separate
+from depth and counts shared intermediates once, regardless of how often used.
+
+Exact search supports only:
+
+- `IntegerAdditionSystem()`, starting from `BigInt[1]`, for positive integer
+  targets. Machine integer inputs are converted to `BigInt` internally.
+- `DirectedStringSystem` with `UnrestrictedConcatenation()`, for nonempty words
+  over its configured alphabet, relative to its configured ordered primitives.
+  Character alphabets, multi-character blocks, duplicate primitives, and blocks
+  irrelevant to the target are supported without changing their reference order.
+
+All other system/rule combinations, including L-count and L-proportion rules,
+raise `ArgumentError`, even for primitive targets. Invalid targets also raise
+`ArgumentError`. A valid string that cannot be constructed raises `ArgumentError`
+only after exhausting the finite relevant state graph; resource exhaustion
+instead raises `ExactSearchLimitError`.
+
+### Integer search and its proof
+
+The solver uses iterative-deepening depth-first search over strictly increasing
+addition chains. At every state it tries all unordered pairs of earlier values,
+including a value paired with itself. A pair need not contain the most recently
+constructed value: this is not restricted to Brauer/star chains.
+
+Completeness and pruning follow from the supported positive-addition model:
+
+1. Discard unused steps in an optimal construction. Every remaining value is at
+   most the target because positive addition strictly increases both operands.
+2. Duplicate constructions of an already available value are unnecessary because
+   values are reusable. Keep one copy of each value.
+3. Sort those constructed values numerically. Every parent is strictly smaller
+   than its sum, so this gives a valid construction with the same cost. Thus
+   searching only increasing chains loses no optimal solution.
+4. A candidate must exceed the current maximum and not exceed the target. All
+   pairs producing the same new value have identical future availability, so
+   only one is explored at a given search node. Its explicit parents are retained.
+5. With maximum available value `m` and `r` joins remaining, no construction can
+   exceed `m * 2^r`. A branch below the target even at this bound is impossible.
+   The comparison uses `BigInt`, avoiding overflow and floating-point rounding.
+
+From primitive `1`, the doubling bound gives `ceil(log2(target))` as the first
+possible depth, computed with integer bit lengths. Reading the target's binary
+digits left to right gives a feasible construction with at most two joins per
+bit after the leading bit (double, optionally add `1`). This supplies the finite
+upper depth `2 * (bitlength(target) - 1)`. The solver tries every depth from the
+lower bound upwards, fully exhausting every smaller feasible depth before
+returning a witness. The first success is therefore a proven minimum. The
+binary construction supplies only a bound, never a claimed exact answer.
+
+### String search and its proof
+
+The solver performs breadth-first search whose states are complete sets of
+available objects, starting from the primitives. Each edge adds exactly one
+permitted concatenation product at unit cost. It tries all unordered operand
+pairs, including repeated operands; the unrestricted rule supplies both distinct
+product orders. This retains all possible reusable sharing between fragments.
+
+Only these reductions are applied:
+
+1. A useful constructed ancestor of the target must be a contiguous substring
+   of the target: each concatenation embeds both operands contiguously, and this
+   property is transitive. Discarding non-substring products loses no optimum.
+   Irrelevant primitives remain in their original reference positions.
+2. Reconstructing an available object cannot help under unrestricted reuse, so
+   additions must introduce a new object.
+3. Histories with equal available-object sets have identical possible futures.
+   Breadth-first search retains the first, least-cost representative of each
+   set. Sorting and deduplication apply only to copied state keys, never to the
+   actual primitives, references, or witness histories.
+
+A finite word has finitely many substrings, so this search graph is finite.
+Every useful construction corresponds to a path in it; breadth-first search
+reaches the target at the shortest path length. If the entire queue is exhausted,
+the target is unreachable in this model. No substring's independently computed
+index is substituted for the state: shared histories can make fragment-cost
+addition overcount. For instance, `LL`, `ULL`, `LLULL` takes three joins, while
+building `LL` (one) and `ULL` (two) independently plus the final join counts four.
+
+### Witnesses, limits, and interpretation
+
+Both algorithms retain an ordinary `Construction` with explicit operand
+references and a target reference. Before returning any index, the solver calls
+the existing independent `verify` and checks that the target reference actually
+equals the requested target. Primitive witnesses are empty constructions.
+Witness feasibility alone does not prove optimality: exhaustive search in cost
+order plus the completeness arguments above establish minimality. The internal
+witness result is tested but is not yet a stable public API.
+
+The positive `Int` keyword `max_states` defaults to `100_000`. It counts DFS
+state visits across all integer depth iterations (including pruned nodes), or
+newly discovered BFS states for strings, including the initial search state.
+Primitive targets need no search visits. When another state would exceed the
+budget, `ExactSearchLimitError` is thrown with no exact index or heuristic value
+returned. No interrupted or budget-limited search is reported as an optimum.
+
+These are simple combinatorial searches, not scalable general solvers. String
+BFS stores available objects and a witness history for each discovered state;
+integer DFS can revisit the same values along different chains and depths.
+The state budget is not a wall-clock or byte limit, and increasing it may consume
+substantial time and memory. Exact search has no persistent cache or lookup table.
+
+## Feasibility and bounds
 
 A verified construction containing a target can support an upper bound on its
 minimum join count under these conventions. Verification alone proves neither
-minimality nor a lower bound. Any future exact-result API must specify its
-objective, target, assumptions, and evidence of optimality.
+minimality nor a lower bound. Keep such feasible certificates and bounds distinct
+from proven exact values returned by the supported exhaustive searches.
 
 ## Decisions deferred
 
 Depth conventions, boundary conditions and normalisation for discrete Dirichlet
 energy, and the precise joint assembly / COJAS objective remain to be specified.
-There are no implemented optimisation objectives, energy calculations,
-simulation engines, or graph attachment machinery.
+Depth/energy optimisation, joint-target optimisation, stochastic simulation,
+and graph attachment machinery remain unimplemented.

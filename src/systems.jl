@@ -98,8 +98,8 @@ end
     IntegerAdditionSystem()
 
 Minimal positive-`BigInt` system with primitive `1` and binary addition.
-Demonstrates the generic interface without addition-chain search. Arbitrary
-precision avoids overflow; use `big` products in its construction certificates.
+Uses the generic interface and supports exact assembly-index search for small
+targets. Arbitrary precision avoids overflow; use `big` products in certificates.
 """
 struct IntegerAdditionSystem <: AbstractAssemblySystem{BigInt} end
 
