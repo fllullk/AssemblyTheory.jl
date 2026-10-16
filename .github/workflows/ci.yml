@@ -1,0 +1,23 @@
+name: Package tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        julia-version: ['1.10', '1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.julia-version }}
+      - name: Test package
+        run: julia --project=. -e 'using Pkg; Pkg.test()'
+      - name: Run string example
+        run: julia --project=. examples/string_concatenation.jl
+      - name: Run integer example
+        run: julia --project=. examples/integer_addition.jl

@@ -1,0 +1,13 @@
+name = "AssemblyTheory"
+uuid = "c782542f-6a9a-41ac-a946-50cd19a9b490"
+authors = ["Francisco Llull Kerrigan"]
+version = "0.1.0"
+
+[compat]
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
