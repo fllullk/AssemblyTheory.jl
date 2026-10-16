@@ -11,6 +11,7 @@ julia --project=. -e 'using Pkg; Pkg.instantiate()'
 julia --project=. -e 'using Pkg; Pkg.test()'
 julia --project=. examples/string_concatenation.jl
 julia --project=. examples/integer_addition.jl
+julia --project=. examples/assembly_index.jl
 git diff --check
 ```
 
@@ -27,6 +28,13 @@ alphabet validation. Test strict comparisons, ties, and duplicate products.
 Do not reorder or deduplicate primitive lists. Parent references preserve
 construction history independently of equality; ancestry selection must retain
 repeated parents while returning shared ancestor steps only once.
+
+Exact assembly-index solvers currently support integer addition from `1` and
+unrestricted string concatenation. New search algorithms or supported models
+need a completeness argument, justified pruning, independent witness verification,
+and tests of both returned values and certificates. Do not present a resource
+limit or an interrupted search as an exact optimum. An independently minimised
+fragment cost does not account for sharing between its construction and another's.
 
 Report feasibility, bounds, and exact optima distinctly. A short construction
 alone is not proof of optimality. Document assumptions, tie rules, and equality

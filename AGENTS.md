@@ -6,6 +6,12 @@
   demonstration, explicit operand references, ancestry inspection, and independent
   construction verification. Both ordering rules allow both distinct orders on
   ties. These restrict products, not sampling probabilities.
+- Exact single-target assembly index is supported for IntegerAdditionSystem
+  from BigInt[1] and DirectedStringSystem with UnrestrictedConcatenation only.
+  Reuse the generic certificates and independent verifier. Document completeness
+  and every pruning rule; never report heuristic or interrupted results as exact.
+  Resource exhaustion must fail explicitly. Keep other rule combinations unsupported
+  until their search completeness is justified. Test values and witness certificates.
 - Keep validity separate from primitive availability. Interpret every construction
   relative to its system's ordered building blocks; never silently sort or
   deduplicate them. Document derived and explicit alphabets.
@@ -14,9 +20,9 @@
   ancestry may select primitives or earlier outputs and returns shared steps once.
 - Use small shared interfaces and Julia multiple dispatch with specialised
   implementations. Avoid speculative abstractions and unnecessary dependencies.
-- Optimisation and addition-chain search solvers, simulation engines, energy
-  calculations, index/depth objectives, joint assembly / COJAS, external solver
-  adapters, graph attachment machinery, and further object types are future work. Document
+- Broader optimisation solvers, simulation engines, energy calculations, depth
+  objectives, joint assembly / COJAS, external solver adapters, graph attachment
+  machinery, and further object types are future work. Document
   proposals before expanding scope; do not claim these are implemented.
 - Always distinguish exact results from bounds. Feasibility verification does
   not prove optimality. Label upper/lower bounds and document assumptions and
@@ -25,6 +31,7 @@
 - Run `julia --project=. -e 'using Pkg; Pkg.test()'` and
   both `julia --project=. examples/string_concatenation.jl` and
   `julia --project=. examples/integer_addition.jl` after relevant changes.
+  Also run `julia --project=. examples/assembly_index.jl` for exact-index changes.
   Use `julia --project=. -e 'using Pkg; Pkg.instantiate()'` for local setup.
   Run `git diff --check`. If Julia is unavailable, report runtime verification
   as incomplete rather than implying the tests passed.

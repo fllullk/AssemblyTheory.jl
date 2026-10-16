@@ -1,6 +1,8 @@
 using Test
 using AssemblyTheory
 
+include("assembly_index.jl")
+
 # A rule extension needs no new system type.
 struct LeftOnly <: AbstractStringRule end
 AssemblyTheory.assembly_products(::LeftOnly, a::AbstractString, b::AbstractString) = [string(a, b)]
